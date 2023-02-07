@@ -1,90 +1,121 @@
-const selections = ['rock', 'paper', 'scissors']
-const winners = [];
-
-// the game itself//
-function game() {
-    for(let i = 1; i <= 5; i++){
-        playRound(i);
-    }
-    document.querySelector('button').textContent = 'Play Again!'
-    logWins();
-    
+const choices = document.querySelectorAll('.choice');
+const score = document.getElementById('score');
+const result = document.getElementById('result');
+const restart = document.getElementById('restart');
+const modal = document.querySelector('.modal');
+const scoreboard = {
+  player: 0,
+  computer: 0
 }
 
-// each round thats  played//
-function playRound(round) {
-    const playerSelection = playerChoice();
-    const computerSelection = computerChoice();
-    const winner = checkWinner(playerSelection, computerSelection);
-    winners.push(winner);
-    logRound(playerSelection, computerSelection, winner, round)
+// game function
+function playGame(e) {
+  restart.style.display = 'inline-block';
+  const playerSelection = e.target.id;
+  const computerSelection = getComputerSelection();
+  const winner = getWinner(playerSelection, computerSelection);
+  showWinner(winner, computerSelection);
 }
 
-// player input//
-function playerChoice(){
-    let input = prompt('Choose your weapon: ROCK, PAPER, SCISSORS');
-    while (input == null) {
-        input = prompt('Sorry cannot bring outside weapons, choose from the following: ROCK, PAPER, SCISSORS');
-    }
-    input = input.toLowerCase();
-        let check = validateInput(input);
-    while (check == false) {
-        input = prompt('Sorry cannot bring outside weapons, choose from the following: ROCK, PAPER, SCISSORS');
-        }  
-        while (input == null) {
-            input = prompt('Sorry cannot bring outside weapons, choose from the following: ROCK, PAPER, SCISSORS');
-        }
-    input = input.toLowerCase();
-    check = validateInput(input);
-    return input;
-
+//randomize computer selection
+function getComputerSelection() {
+  const rand = Math.random();
+  if (rand < 0.34) {
+    return 'rock';
+  } else if (rand <= 0.67) {
+    return 'paper';
+  } else {
+    return 'scissors';
+  }
 }
 
-//computer's randomized choices//
- 
-function computerChoice(){
-    return selections[Math.floor(Math.random()*selections.length)];
-}
-
-// validating selections//
-function validateInput(selection){
-    if(selections.includes(selection)){
-        return true;
+//getting who wins the round
+function getWinner(playerSelection, computerSelection) {
+  if(playerSelection === computerSelection){
+    return 'TIE!';
+  } else if (playerSelection === 'rock') {
+    if(computerSelection === 'paper') {
+    return 'computer';
+   } else {
+    return 'player';
+   }
+  } else if(playerSelection === 'paper') {
+    if (computerSelection === 'scissors') {
+      return 'computer';
     } else {
-        return false ;
+      return 'player';
     }
-}
-
-// recording winnner of each round//
-function checkWinner(choiceP, choiceC) {
-    if(choiceC == choiceP){
-        return 'Tie';
-    }   else if (
-            (choiceP === 'rock' && choiceC === 'scissors') ||
-            (choiceP === 'scissors' && choiceC === 'paper') || 
-            (choiceP === 'paper' && choiceC === 'rock')) {
-        return "Player";
-    }   else {
-        return "Computer";
+  } else if(playerSelection === 'scissors') {
+    if (computerSelection === 'rock'){
+      return 'computer';
+    } else {
+      return 'player';
     }
+  }
 }
 
-// recording wins //
-function logWins(){
-    let playerWins = winners.filter((item) => item == 'Player').length;
-    let computerWins = winners.filter((item) => item == 'Computer').length;
-    let ties = winners.filter((item) => item == 'Tie').length;
-    console.log('Results');
-    console.log('Player Wins:', playerWins);
-    console.log('Computer Wins:', computerWins);
-    console.log('Ties:', ties);
+function showWinner(winner, computerSelection) {
+  if(winner === 'player') {
+    scoreboard.player++;
+
+    result.innerHTML =`
+    <h1 class='text-win'>You win</h1>
+    <i class='fa-solid fa-hand-${computerSelection} fa-10x'></i>
+    <p>Computer chose <strong>${computerSelection.toUpperCase()}</strong>
+    `;
+  } else if( winner === 'computer') {
+    scoreboard.computer++;
+
+    result.innerHTML =`
+    <h1 class='text-lose'>You Lose</h1>
+    <i class='fa-solid fa-hand-${computerSelection} fa-10x'></i>
+    <p>Computer chose <strong>${computerSelection.toUpperCase()}</strong>
+    `;
+  } else {
+    result.innerHTML =`
+    <h1>TIE!</h1>
+    <i class='fa-solid fa-hand-${computerSelection} fa-10x'></i>
+    <p>Computer chose <strong>${computerSelection.toUpperCase()}</strong>
+    `;
+  }
+
+  //score display
+  score.innerHTML = `
+    <p> Player: ${scoreboard.player}</p>
+    <p>Computer: ${scoreboard.computer}</p>
+    `;
+
+  modal.style.display = 'block';
 }
 
-// recording each round and scores //
-function logRound(playerChoice, computerChoice, winner, round) {
-    console.log('Round:', round);
-    console.log('Player Chose:', playerChoice);
-    console.log('Computer Chose:', computerChoice);
-    console.log(winner, 'Won the Round');
-    console.log('-----------------------');
+function restartGame () {
+  scoreboard.player = 0;
+  scoreboard.computer = 0;
+  score.innerHTML =`
+  <p>Player: 0</p>
+  <p>Computer: 0</p>
+  `;
 }
+
+function clearModal(e) {
+  if (e.target == modal) {
+    modal.style.display = 'none';
+  }
+}
+
+function endGame() {
+  if (scoreboard.player === 5 && scoreboard.computer < 5 ) {
+    return 'YOU WON!'
+  } else if( scoreboard.computer === 5 && scoreboard.player < 5 ){
+    return 'YOU LOST :('
+  }
+  playGame.stop
+
+
+}
+
+choices.forEach(choice => choice.addEventListener('click', playGame));
+window.addEventListener('click', clearModal);
+restart.addEventListener('click', restartGame);
+
+   
